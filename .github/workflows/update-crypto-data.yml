@@ -57,8 +57,28 @@ jobs:
               try {
                 const coins = JSON.parse(data);
 
+                // Filter out unwanted coins (wrapped, derivatives, staked, etc.)
+                const filteredCoins = coins.filter(coin => {
+                  const name = (coin.name || '').toLowerCase();
+                  const symbol = (coin.symbol || '').toLowerCase();
+
+                  // Exclude wrapped/derivative coins
+                  const unwantedKeywords = [
+                    'wrapped', 'staked', 'derivative', 'leveraged', 'inverse',
+                    'bear', 'bull', '2x', '3x', 'usd+', 'usd-', 'fttusd',
+                    'wormhole', 'bridged', 'binance-peg', 'ethereum',
+                    'arbitrum', 'polygon', 'test', 'fake', 'old'
+                  ];
+
+                  const isUnwanted = unwantedKeywords.some(keyword =>
+                    name.includes(keyword) || symbol.includes(keyword)
+                  );
+
+                  return !isUnwanted;
+                });
+
                 // Transform CoinGecko format to our app format
-                const transformedCoins = coins.map((coin, index) => ({
+                const transformedCoins = filteredCoins.map((coin, index) => ({
                   symbol: coin.symbol.toUpperCase(),
                   name: coin.name,
                   id: coin.id,
