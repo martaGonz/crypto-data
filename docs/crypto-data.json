@@ -1,0 +1,87 @@
+{
+  "success": true,
+  "timestamp": "2025-10-19T00:00:00Z",
+  "count": 100,
+  "data": [
+    {
+      "symbol": "BTC",
+      "name": "Bitcoin",
+      "id": "bitcoin",
+      "current_price": 107400,
+      "price_change_percentage_24h": 0.42,
+      "market_cap_rank": 1
+    },
+    {
+      "symbol": "ETH",
+      "name": "Ethereum",
+      "id": "ethereum",
+      "current_price": 3912,
+      "price_change_percentage_24h": 0.88,
+      "market_cap_rank": 2
+    },
+    {
+      "symbol": "XRP",
+      "name": "XRP",
+      "id": "ripple",
+      "current_price": 2.36,
+      "price_change_percentage_24h": 0.03,
+      "market_cap_rank": 3
+    },
+    {
+      "symbol": "USDT",
+      "name": "Tether",
+      "id": "tether",
+      "current_price": 1.00,
+      "price_change_percentage_24h": -0.02,
+      "market_cap_rank": 4
+    },
+    {
+      "symbol": "BNB",
+      "name": "Binance Coin",
+      "id": "binancecoin",
+      "current_price": 1090.56,
+      "price_change_percentage_24h": -1.26,
+      "market_cap_rank": 5
+    },
+    {
+      "symbol": "SOL",
+      "name": "Solana",
+      "id": "solana",
+      "current_price": 187.35,
+      "price_change_percentage_24h": 1.13,
+      "market_cap_rank": 6
+    },
+    {
+      "symbol": "USDC",
+      "name": "USD Coin",
+      "id": "usd-coin",
+      "current_price": 0.9999,
+      "price_change_percentage_24h": 0.00,
+      "market_cap_rank": 7
+    },
+    {
+      "symbol": "ADA",
+      "name": "Cardano",
+      "id": "cardano",
+      "current_price": 1.05,
+      "price_change_percentage_24h": -0.50,
+      "market_cap_rank": 8
+    },
+    {
+      "symbol": "DOGE",
+      "name": "Dogecoin",
+      "id": "dogecoin",
+      "current_price": 0.43,
+      "price_change_percentage_24h": 2.15,
+      "market_cap_rank": 9
+    },
+    {
+      "symbol": "HYPE",
+      "name": "Hyperliquid",
+      "id": "hyperliquid",
+      "current_price": 36.47,
+      "price_change_percentage_24h": 0.86,
+      "market_cap_rank": 10
+    }
+  ]
+}

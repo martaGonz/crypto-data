@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypton - Cryptocurrency Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0e0e0e 0%, #1a1a1a 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            font-size: 3em;
+            font-weight: 300;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #25ead5 0%, #ff3692 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        p {
+            color: #999;
+            font-size: 1.1em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #333;
+            border-top: 4px solid #25ead5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .crypto-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .crypto-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .crypto-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(37, 234, 213, 0.5);
+            transform: translateY(-5px);
+        }
+
+        .crypto-rank {
+            display: inline-block;
+            background: rgba(37, 234, 213, 0.1);
+            color: #25ead5;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-bottom: 10px;
+        }
+
+        .crypto-name {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .crypto-symbol {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .crypto-price {
+            font-size: 1.8em;
+            font-weight: 300;
+            margin: 15px 0;
+            color: #fff;
+        }
+
+        .crypto-change {
+            font-size: 1.1em;
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            font-weight: 500;
+        }
+
+        .change-positive {
+            background: rgba(37, 234, 213, 0.15);
+            color: #25ead5;
+        }
+
+        .change-negative {
+            background: rgba(253, 54, 146, 0.15);
+            color: #fd3692;
+        }
+
+        .timestamp {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .error {
+            background: rgba(253, 54, 146, 0.1);
+            border: 1px solid rgba(253, 54, 146, 0.3);
+            color: #fd3692;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Crypton</h1>
+            <p>Live Cryptocurrency Prices & Charts</p>
+        </header>
+
+        <div id="content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <span>Loading cryptocurrency data...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const formatPrice = (price) => {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: price < 1 ? 4 : 2,
+                maximumFractionDigits: price < 1 ? 4 : 2
+            }).format(price);
+        };
+
+        const formatChange = (change) => {
+            return (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+        };
+
+        const loadCryptoData = async () => {
+            try {
+                const response = await fetch('./crypto-data.json');
+                if (!response.ok) throw new Error('Failed to fetch data');
+                const data = await response.json();
+
+                if (!data.success || !data.data) {
+                    throw new Error('Invalid data format');
+                }
+
+                renderCryptoGrid(data.data, data.timestamp);
+            } catch (error) {
+                document.getElementById('content').innerHTML = `
+                    <div class="error">
+                        <strong>Error loading data:</strong> ${error.message}
+                        <br><small>The app will retry automatically.</small>
+                    </div>
+                `;
+                // Retry after 10 seconds
+                setTimeout(loadCryptoData, 10000);
+            }
+        };
+
+        const renderCryptoGrid = (coins, timestamp) => {
+            const html = `
+                <div class="crypto-grid">
+                    ${coins.map(coin => `
+                        <div class="crypto-card">
+                            <div class="crypto-rank">#${coin.market_cap_rank}</div>
+                            <div class="crypto-name">${coin.name}</div>
+                            <div class="crypto-symbol">${coin.symbol}</div>
+                            <div class="crypto-price">${formatPrice(coin.current_price)}</div>
+                            <div class="crypto-change ${coin.price_change_percentage_24h >= 0 ? 'change-positive' : 'change-negative'}">
+                                ${formatChange(coin.price_change_percentage_24h || 0)} (24h)
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="timestamp">
+                    <small>Last updated: ${new Date(timestamp).toLocaleString()}</small>
+                </div>
+            `;
+            document.getElementById('content').innerHTML = html;
+        };
+
+        // Load data on page load
+        loadCryptoData();
+
+        // Refresh every 30 seconds
+        setInterval(loadCryptoData, 30000);
+    </script>
+</body>
+</html>

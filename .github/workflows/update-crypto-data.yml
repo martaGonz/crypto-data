@@ -1,0 +1,94 @@
+name: Update Cryptocurrency Data
+
+on:
+  schedule:
+    # Run every 5 minutes
+    - cron: '*/5 * * * *'
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Fetch CoinGecko data
+        run: |
+          node - << 'EOF'
+          const https = require('https');
+          const fs = require('fs');
+
+          // Fetch top 100 cryptocurrencies by market cap from CoinGecko
+          const url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&sparkline=false&precision=4';
+
+          https.get(url, (res) => {
+            let data = '';
+
+            res.on('data', (chunk) => {
+              data += chunk;
+            });
+
+            res.on('end', () => {
+              try {
+                const coins = JSON.parse(data);
+
+                // Transform CoinGecko format to our app format
+                const transformedCoins = coins.map((coin, index) => ({
+                  symbol: coin.symbol.toUpperCase(),
+                  name: coin.name,
+                  id: coin.id,
+                  current_price: coin.current_price || 0,
+                  price_change_percentage_24h: coin.price_change_percentage_24h,
+                  market_cap_rank: index + 1
+                }));
+
+                // Write to docs folder (served by GitHub Pages)
+                const output = {
+                  success: true,
+                  timestamp: new Date().toISOString(),
+                  count: transformedCoins.length,
+                  data: transformedCoins
+                };
+
+                // Create docs directory if it doesn't exist
+                if (!fs.existsSync('./docs')) {
+                  fs.mkdirSync('./docs', { recursive: true });
+                }
+
+                fs.writeFileSync('./docs/crypto-data.json', JSON.stringify(output, null, 2));
+                console.log('✅ Successfully updated crypto data with', transformedCoins.length, 'coins');
+              } catch (error) {
+                console.error('❌ Error parsing data:', error);
+                process.exit(1);
+              }
+            });
+          }).on('error', (error) => {
+            console.error('❌ Network error:', error);
+            process.exit(1);
+          });
+          EOF
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          if git diff --quiet docs/crypto-data.json; then
+            echo "No changes detected"
+          else
+            git add docs/crypto-data.json
+            git commit -m "chore: update cryptocurrency data [skip ci]"
+            git push
+          fi
