@@ -1,7 +1,7 @@
 {
   "success": true,
-  "timestamp": "2025-10-19T19:15:19.004Z",
-  "count": 5,
+  "timestamp": "2025-10-19T19:23:15.761Z",
+  "count": 4,
   "data": {
     "bitcoin": {
       "symbol": "BTC",
@@ -225,62 +225,6 @@
           "high": 666.6607,
           "low": 605.9924,
           "strength": 9
-        }
-      ]
-    },
-    "ripple": {
-      "symbol": "XRP",
-      "1D": [],
-      "1W": [],
-      "1M": [
-        {
-          "high": 2.7391,
-          "low": 2.7391,
-          "strength": 1
-        },
-        {
-          "high": 3.0414,
-          "low": 3.0414,
-          "strength": 1
-        },
-        {
-          "high": 2.3838,
-          "low": 2.3838,
-          "strength": 1
-        }
-      ],
-      "3M": [
-        {
-          "high": 2.7693,
-          "low": 2.7391,
-          "strength": 3
-        },
-        {
-          "high": 2.7693,
-          "low": 2.7391,
-          "strength": 3
-        },
-        {
-          "high": 2.7693,
-          "low": 2.7391,
-          "strength": 3
-        }
-      ],
-      "1Y": [
-        {
-          "high": 2.7693,
-          "low": 2.5883,
-          "strength": 6
-        },
-        {
-          "high": 2.7693,
-          "low": 2.5883,
-          "strength": 6
-        },
-        {
-          "high": 2.1289,
-          "low": 2.0135,
-          "strength": 5
         }
       ]
     }
