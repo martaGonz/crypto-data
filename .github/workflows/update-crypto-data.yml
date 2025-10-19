@@ -30,8 +30,8 @@ jobs:
           const https = require('https');
           const fs = require('fs');
 
-          // Fetch top 100 cryptocurrencies by market cap from CoinGecko
-          const url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&sparkline=false&precision=4';
+          // Fetch top 250 cryptocurrencies by market cap from CoinGecko
+          const url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&sparkline=false&precision=4';
 
           https.get(url, (res) => {
             let data = '';
