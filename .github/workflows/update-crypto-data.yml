@@ -61,20 +61,46 @@ jobs:
                 const filteredCoins = coins.filter(coin => {
                   const name = (coin.name || '').toLowerCase();
                   const symbol = (coin.symbol || '').toLowerCase();
+                  const id = (coin.id || '').toLowerCase();
 
-                  // Exclude wrapped/derivative coins
-                  const unwantedKeywords = [
-                    'wrapped', 'staked', 'derivative', 'leveraged', 'inverse',
-                    'bear', 'bull', '2x', '3x', 'usd+', 'usd-', 'fttusd',
-                    'wormhole', 'bridged', 'binance-peg', 'ethereum',
-                    'arbitrum', 'polygon', 'test', 'fake', 'old'
+                  // Specific wrapped/derivative coins to exclude (by ID to avoid false positives)
+                  const unwantedIds = [
+                    'weth', 'wbtc', 'steth', 'reth', 'wsteth', 'cbeth',
+                    'meth', 'staked-ether', 'etherfi-ether',
+                    'usdp', 'fei-usd', 'frax', 'lusd',
+                    'synthetix-network-token', // Leveraged tokens from Synthetix
+                    'thorchain-erc20', 'thorchain-rune',
+                    'terra-luna-classic', 'luna-classic',
+                    'test-coin', 'fake-usdt'
                   ];
 
-                  const isUnwanted = unwantedKeywords.some(keyword =>
+                  // Keyword-based exclusions (more specific to avoid false positives)
+                  const unwantedKeywords = [
+                    'leveraged-', 'inverse-', 'bear-', 'bull-', '-2x', '-3x', '-5x', '-10x',
+                    'test', 'fake', 'old coin', 'deprecated',
+                    'wrapped-', 'staked-' // But NOT just "staked"
+                  ];
+
+                  // Check if coin ID is in unwanted list
+                  if (unwantedIds.includes(id)) {
+                    return false;
+                  }
+
+                  // Check keyword exclusions
+                  const hasUnwantedKeyword = unwantedKeywords.some(keyword =>
                     name.includes(keyword) || symbol.includes(keyword)
                   );
 
-                  return !isUnwanted;
+                  if (hasUnwantedKeyword) {
+                    return false;
+                  }
+
+                  // Exclude 2x/3x/5x leverage indicators in names
+                  if (/\d+x\s/i.test(name) || /\d+x\s/i.test(symbol)) {
+                    return false;
+                  }
+
+                  return true;
                 });
 
                 // Transform CoinGecko format to our app format
