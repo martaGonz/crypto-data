@@ -4,14 +4,15 @@ Public cryptocurrency data cache for [Crypton App](https://github.com/martaGonz/
 
 ## Overview
 
-This repository serves as a public data source for the Crypton iOS app, bypassing CoinGecko API rate limits.
+This repository provides a public, cached data source for cryptocurrency market data. It aggregates data from CoinGecko and serves it via GitHub Pages for fast, reliable access.
 
 ### How it works
 
 - **GitHub Actions** runs every 5 minutes
-- Fetches top 100 cryptocurrencies from CoinGecko API
+- Fetches top 250 cryptocurrencies by market cap from CoinGecko
+- Filters to include only primary cryptocurrencies (excludes wrapped tokens and derivatives)
 - Updates `crypto-data.json` with clean, formatted data
-- Data is served via **GitHub Pages** (public, no authentication needed)
+- Data is served via **GitHub Pages** at no cost, with no authentication required
 
 ### URLs
 
@@ -40,13 +41,15 @@ This repository serves as a public data source for the Crypton iOS app, bypassin
 
 ### Features
 
-- ✅ Updated every 5 minutes
-- ✅ Top 100 cryptocurrencies by market cap
+- ✅ Updated every 5 minutes for fresh data
+- ✅ Top 250 cryptocurrencies by market cap
+- ✅ Primary coins only (filtered clean data)
 - ✅ Real-time prices from CoinGecko
-- ✅ 24-hour price changes
-- ✅ Web dashboard included
-- ✅ Zero cost (GitHub Pages + Actions)
-- ✅ No authentication required
+- ✅ 24-hour price changes included
+- ✅ Includes web dashboard for viewing data
+- ✅ Completely free and open source
+- ✅ No authentication or API keys required
+- ✅ Globally distributed via GitHub CDN
 
 ### License
 
