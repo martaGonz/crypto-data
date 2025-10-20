@@ -223,11 +223,11 @@ jobs:
 
                   srData[coin.id] = {
                     symbol: coin.symbol,
-                    '1D': calculateSR(prices.slice(-1), 1), // Last day
-                    '1W': calculateSR(prices.slice(-7), 3),
-                    '1M': calculateSR(prices.slice(-30), 5),
-                    '3M': calculateSR(prices.slice(-90), 7),
-                    '1Y': calculateSR(prices, 10)
+                    '1D': calculateSR(prices.slice(-30), 2), // Last 30 days with tight pivots
+                    '1W': calculateSR(prices.slice(-60), 3), // Last 60 days
+                    '1M': calculateSR(prices.slice(-90), 5), // Last 90 days
+                    '3M': calculateSR(prices.slice(-180), 7), // Last 180 days
+                    '1Y': calculateSR(prices, 10) // Full 365 days
                   };
 
                   console.log(`✅ Calculated S/R for ${coin.symbol}`);
