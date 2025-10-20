@@ -149,49 +149,128 @@ jobs:
           // Read current crypto data
           const cryptoData = JSON.parse(fs.readFileSync('./docs/crypto-data.json', 'utf8'));
 
-          // Function to calculate pivot points and S/R levels
-          const calculateSR = (prices, period = 10) => {
-            const pivots = [];
-
-            for (let i = period; i < prices.length - period; i++) {
-              let isHigh = true, isLow = true;
-
-              for (let j = 1; j <= period; j++) {
-                if (prices[i] <= prices[i - j]) isHigh = false;
-                if (prices[i] >= prices[i - j]) isLow = false;
-                if (prices[i] <= prices[i + j]) isHigh = false;
-                if (prices[i] >= prices[i + j]) isLow = false;
+          // Calculate Average True Range
+          function atr(ohlcv, len = 14) {
+            const tr = [];
+            for (let i = 0; i < ohlcv.length; i++) {
+              if (i === 0) {
+                tr.push(ohlcv[i].h - ohlcv[i].l);
+                continue;
               }
-
-              if (isHigh) pivots.push({ price: prices[i], type: 'high', index: i });
-              if (isLow) pivots.push({ price: prices[i], type: 'low', index: i });
+              const hi = ohlcv[i].h, lo = ohlcv[i].l, pc = ohlcv[i - 1].c;
+              tr.push(Math.max(hi - lo, Math.abs(hi - pc), Math.abs(lo - pc)));
             }
+            const out = [];
+            let sum = 0;
+            for (let i = 0; i < tr.length; i++) {
+              sum += tr[i];
+              if (i >= len) sum -= tr[i - len];
+              out.push(i >= len - 1 ? sum / len : null);
+            }
+            return out;
+          }
 
-            // Group into channels
-            const channels = [];
-            const maxWidth = (Math.max(...prices) - Math.min(...prices)) * 0.05; // 5% width
-
-            for (let pivot of pivots) {
-              let high = pivot.price, low = pivot.price, strength = 1;
-
-              for (let other of pivots) {
-                if (Math.abs(other.price - pivot.price) <= maxWidth && other !== pivot) {
-                  high = Math.max(high, other.price);
-                  low = Math.min(low, other.price);
-                  strength++;
-                }
+          // Find pivot highs and lows
+          function pivots(ohlcv, L = 5) {
+            const P = [];
+            for (let i = L; i < ohlcv.length - L; i++) {
+              const h = ohlcv[i].h, l = ohlcv[i].l;
+              let hi = true, lo = true;
+              for (let k = 1; k <= L; k++) {
+                if (ohlcv[i - k].h >= h || ohlcv[i + k].h >= h) hi = false;
+                if (ohlcv[i - k].l <= l || ohlcv[i + k].l <= l) lo = false;
+                if (!hi && !lo) break;
               }
-
-              channels.push({ high: Math.round(high * 10000) / 10000, low: Math.round(low * 10000) / 10000, strength });
+              if (hi) P.push({ type: 'H', price: h, idx: i });
+              if (lo) P.push({ type: 'L', price: l, idx: i });
             }
+            return P;
+          }
 
-            // Sort by strength and return top 3
-            return channels.sort((a, b) => b.strength - a.strength).slice(0, 3);
-          };
+          // Create initial bands around pivots
+          function initialBands(pivots, ohlcv, atrArr, bandPct = 0.002) {
+            return pivots.map(p => {
+              const i = p.idx;
+              const w = Math.max(bandPct * p.price, 0.5 * (atrArr[i] ?? 0));
+              const low = p.price - w;
+              const high = p.price + w;
+              return { low, high, pivots: [p], touches: 0, last_touch_t: null };
+            });
+          }
 
-          // Fetch historical data and calculate S/R for test coins (BTC, ETH only)
+          // Count how many bars touch each band
+          function countTouches(band, ohlcv) {
+            let t = 0, last = null;
+            for (const b of ohlcv) {
+              if (b.h >= band.low && b.l <= band.high) {
+                t++;
+                last = b;
+              }
+            }
+            band.touches = t;
+            band.last_touch_t = last;
+          }
+
+          // Merge overlapping bands
+          function mergeOverlaps(bands, mergeGapPct = 0.0015) {
+            if (!bands.length) return [];
+            bands.sort((a, b) => a.low - b.low);
+            const out = [bands[0]];
+            for (let i = 1; i < bands.length; i++) {
+              const cur = bands[i];
+              const last = out[out.length - 1];
+              const gap = cur.low - last.high;
+              const threshold = last.high * mergeGapPct;
+              if (gap <= threshold) {
+                last.high = Math.max(last.high, cur.high);
+                last.low = Math.min(last.low, cur.low);
+                last.pivots.push(...cur.pivots);
+                last.touches += cur.touches;
+              } else {
+                out.push(cur);
+              }
+            }
+            return out;
+          }
+
+          // Calculate S/R for a timeframe
+          function calculateSR(ohlcv, pivotLen = 5, bandPct = 0.002, topK = 6) {
+            if (ohlcv.length < 30) return [];
+
+            const atrArr = atr(ohlcv, 14);
+            const pivotPoints = pivots(ohlcv, pivotLen);
+
+            if (pivotPoints.length === 0) return [];
+
+            let bands = initialBands(pivotPoints, ohlcv, atrArr, bandPct);
+            bands.forEach(b => countTouches(b, ohlcv));
+            bands = mergeOverlaps(bands, 0.0015);
+
+            // Sort by strength (touches) descending, return top K
+            return bands
+              .filter(b => b.touches >= 2)
+              .sort((a, b) => b.touches - a.touches)
+              .slice(0, topK)
+              .map(b => ({
+                high: Math.round(b.high * 100) / 100,
+                low: Math.round(b.low * 100) / 100,
+                strength: b.touches
+              }));
+          }
+
+          // Convert price data to OHLCV format
+          function priceToOHLCV(prices, highs, lows, volumes) {
+            return prices.map((c, i) => ({
+              c: c,
+              h: highs[i],
+              l: lows[i],
+              v: volumes[i] || 0
+            }));
+          }
+
+          // Fetch historical data and calculate S/R
           const srData = {};
-          const testCoinIds = ['bitcoin', 'ethereum']; // Test with BTC and ETH only
+          const testCoinIds = ['bitcoin'];
           const topCoins = cryptoData.data.filter(coin => testCoinIds.includes(coin.id));
 
           let processed = 0;
@@ -210,7 +289,6 @@ jobs:
             const coin = topCoins[processed];
             processed++;
 
-            // Fetch 1 year of daily data for this coin
             const url = `https://api.coingecko.com/api/v3/coins/${coin.id}/market_chart?vs_currency=usd&days=365&interval=daily`;
 
             https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
@@ -219,15 +297,22 @@ jobs:
               res.on('end', () => {
                 try {
                   const result = JSON.parse(data);
-                  const prices = result.prices.map(p => p[1]);
+
+                  // Extract OHLCV data
+                  const fullOHLCV = result.prices.map((p, i) => ({
+                    c: p[1],
+                    h: p[1] * 1.01, // Approximate - CoinGecko doesn't give true OHLC
+                    l: p[1] * 0.99,
+                    v: result.volumes ? result.volumes[i][1] : 0
+                  }));
 
                   srData[coin.id] = {
                     symbol: coin.symbol,
-                    '1D': calculateSR(prices.slice(-30), 2), // Last 30 days with tight pivots
-                    '1W': calculateSR(prices.slice(-60), 3), // Last 60 days
-                    '1M': calculateSR(prices.slice(-90), 5), // Last 90 days
-                    '3M': calculateSR(prices.slice(-180), 7), // Last 180 days
-                    '1Y': calculateSR(prices, 10) // Full 365 days
+                    '1D': calculateSR(fullOHLCV.slice(-30), 5, 0.002, 6),
+                    '1W': calculateSR(fullOHLCV.slice(-60), 5, 0.002, 6),
+                    '1M': calculateSR(fullOHLCV.slice(-90), 5, 0.002, 6),
+                    '3M': calculateSR(fullOHLCV.slice(-180), 5, 0.002, 6),
+                    '1Y': calculateSR(fullOHLCV, 5, 0.002, 6)
                   };
 
                   console.log(`✅ Calculated S/R for ${coin.symbol}`);
