@@ -189,9 +189,10 @@ jobs:
             return channels.sort((a, b) => b.strength - a.strength).slice(0, 3);
           };
 
-          // Fetch historical data and calculate S/R for top coins
+          // Fetch historical data and calculate S/R for test coins (BTC, ETH only)
           const srData = {};
-          const topCoins = cryptoData.data.slice(0, 20); // Top 20 coins for S/R
+          const testCoinIds = ['bitcoin', 'ethereum']; // Test with BTC and ETH only
+          const topCoins = cryptoData.data.filter(coin => testCoinIds.includes(coin.id));
 
           let processed = 0;
           const processCoins = () => {
