@@ -1,7 +1,7 @@
 {
   "success": true,
-  "timestamp": "2025-10-20T07:14:47.791Z",
-  "count": 4,
+  "timestamp": "2025-10-20T07:27:12.360Z",
+  "count": 2,
   "data": {
     "bitcoin": {
       "symbol": "BTC",
@@ -109,119 +109,6 @@
           "high": 3477.2843,
           "low": 3275.8894,
           "strength": 4
-        }
-      ]
-    },
-    "tether": {
-      "symbol": "USDT",
-      "1D": [],
-      "1W": [],
-      "1M": [
-        {
-          "high": 1,
-          "low": 1,
-          "strength": 1
-        },
-        {
-          "high": 1.0005,
-          "low": 1.0005,
-          "strength": 1
-        },
-        {
-          "high": 1.0017,
-          "low": 1.0017,
-          "strength": 1
-        }
-      ],
-      "3M": [
-        {
-          "high": 0.9997,
-          "low": 0.9996,
-          "strength": 3
-        },
-        {
-          "high": 0.9996,
-          "low": 0.9996,
-          "strength": 2
-        },
-        {
-          "high": 0.9997,
-          "low": 0.9996,
-          "strength": 2
-        }
-      ],
-      "1Y": [
-        {
-          "high": 1.0008,
-          "low": 1.0004,
-          "strength": 9
-        },
-        {
-          "high": 1.0008,
-          "low": 1.0004,
-          "strength": 9
-        },
-        {
-          "high": 1.001,
-          "low": 1.0006,
-          "strength": 9
-        }
-      ]
-    },
-    "binancecoin": {
-      "symbol": "BNB",
-      "1D": [],
-      "1W": [
-        {
-          "high": 1071.5486,
-          "low": 1071.5486,
-          "strength": 1
-        }
-      ],
-      "1M": [
-        {
-          "high": 1311.7129,
-          "low": 1311.7129,
-          "strength": 1
-        },
-        {
-          "high": 1110.8142,
-          "low": 1110.8142,
-          "strength": 1
-        }
-      ],
-      "3M": [
-        {
-          "high": 843.6736,
-          "low": 823.4567,
-          "strength": 2
-        },
-        {
-          "high": 843.6736,
-          "low": 823.4567,
-          "strength": 2
-        },
-        {
-          "high": 736.6588,
-          "low": 736.6588,
-          "strength": 1
-        }
-      ],
-      "1Y": [
-        {
-          "high": 673.4761,
-          "low": 607.2954,
-          "strength": 9
-        },
-        {
-          "high": 687.6311,
-          "low": 617.6497,
-          "strength": 8
-        },
-        {
-          "high": 673.4761,
-          "low": 615.9201,
-          "strength": 8
         }
       ]
     }
