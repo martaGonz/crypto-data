@@ -1,16 +1,22 @@
 {
   "success": true,
-  "timestamp": "2026-02-17T00:01:19.004Z",
+  "timestamp": "2026-02-17T00:49:02.597Z",
   "count": 1,
   "data": {
     "bitcoin": {
       "symbol": "BTC",
-      "1D": [],
+      "1D": [
+        {
+          "high": 67332.46,
+          "low": 60446.42,
+          "strength": 3
+        }
+      ],
       "1W": [
         {
           "high": 90586.55,
           "low": 88488.65,
-          "strength": 26
+          "strength": 25
         },
         {
           "high": 95855.16,
@@ -21,13 +27,18 @@
           "high": 86457.57,
           "low": 86112.43,
           "strength": 4
+        },
+        {
+          "high": 67332.46,
+          "low": 60446.42,
+          "strength": 3
         }
       ],
       "1M": [
         {
           "high": 90631.26,
           "low": 88295.13,
-          "strength": 85
+          "strength": 83
         },
         {
           "high": 87281.92,
@@ -35,9 +46,14 @@
           "strength": 37
         },
         {
-          "high": 96067.22,
+          "high": 95929.84,
           "low": 92218.67,
-          "strength": 37
+          "strength": 34
+        },
+        {
+          "high": 67332.46,
+          "low": 60446.42,
+          "strength": 3
         }
       ],
       "3M": [
@@ -76,7 +92,7 @@
         {
           "high": 113919.99,
           "low": 92218.67,
-          "strength": 739
+          "strength": 735
         },
         {
           "high": 90631.26,
@@ -97,6 +113,11 @@
           "high": 127556.16,
           "low": 123345.14,
           "strength": 10
+        },
+        {
+          "high": 67332.46,
+          "low": 60446.42,
+          "strength": 3
         }
       ]
     }
