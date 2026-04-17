@@ -1,22 +1,27 @@
 {
   "success": true,
-  "timestamp": "2026-04-16T23:58:17.803Z",
+  "timestamp": "2026-04-17T00:58:07.474Z",
   "count": 1,
   "data": {
     "bitcoin": {
       "symbol": "BTC",
       "1D": [
         {
+          "high": 70995.82,
+          "low": 69102.55,
+          "strength": 11
+        },
+        {
           "high": 72166.4,
           "low": 71878.31,
-          "strength": 4
+          "strength": 3
         }
       ],
       "1W": [
         {
           "high": 76742.59,
-          "low": 70999.14,
-          "strength": 35
+          "low": 69102.55,
+          "strength": 57
         },
         {
           "high": 66678.11,
@@ -26,14 +31,14 @@
       ],
       "1M": [
         {
+          "high": 76742.59,
+          "low": 69102.55,
+          "strength": 72
+        },
+        {
           "high": 67332.46,
           "low": 60446.42,
           "strength": 65
-        },
-        {
-          "high": 76742.59,
-          "low": 70999.14,
-          "strength": 41
         }
       ],
       "3M": [
@@ -41,6 +46,11 @@
           "high": 90631.26,
           "low": 88295.13,
           "strength": 85
+        },
+        {
+          "high": 76742.59,
+          "low": 69102.55,
+          "strength": 72
         },
         {
           "high": 67332.46,
@@ -58,14 +68,9 @@
           "strength": 49
         },
         {
-          "high": 76742.59,
-          "low": 70999.14,
-          "strength": 41
-        },
-        {
-          "high": 108575.47,
-          "low": 105360.86,
-          "strength": 8
+          "high": 101908.68,
+          "low": 96785.23,
+          "strength": 7
         }
       ],
       "1Y": [
@@ -90,14 +95,14 @@
           "strength": 86
         },
         {
-          "high": 87281.92,
-          "low": 82319.5,
-          "strength": 73
+          "high": 76742.59,
+          "low": 69102.55,
+          "strength": 72
         },
         {
-          "high": 67332.46,
-          "low": 60446.42,
-          "strength": 65
+          "high": 87281.92,
+          "low": 82319.5,
+          "strength": 70
         }
       ]
     }
