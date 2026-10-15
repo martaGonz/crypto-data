@@ -2,11 +2,15 @@ name: Update Cryptocurrency Data
 
 on:
   schedule:
-    # Run every 5 minutes
-    - cron: '*/5 * * * *'
+    # Every 10 minutes (GitHub may delay scheduled runs when it is busy)
+    - cron: '*/10 * * * *'
 
   # Allow manual trigger
   workflow_dispatch:
+
+concurrency:
+  group: update-crypto-data
+  cancel-in-progress: false
 
 jobs:
   update-data:
@@ -24,123 +28,14 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Fetch CoinGecko data
-        run: |
-          node - << 'EOF'
-          const https = require('https');
-          const fs = require('fs');
-
-          // Fetch top 250 cryptocurrencies by market cap from CoinGecko
-          const url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&sparkline=false&precision=4';
-
-          const options = {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (compatible; CryptonApp/1.0)'
-            }
-          };
-
-          https.get(url, options, (res) => {
-            let data = '';
-
-            res.on('data', (chunk) => {
-              data += chunk;
-            });
-
-            res.on('end', () => {
-              // Check HTTP status
-              if (res.statusCode !== 200) {
-                console.error('❌ API returned status code:', res.statusCode);
-                console.error('Response:', data.substring(0, 200));
-                process.exit(1);
-              }
-
-              try {
-                const coins = JSON.parse(data);
-
-                // Filter out unwanted coins (wrapped, derivatives, staked, etc.)
-                const filteredCoins = coins.filter(coin => {
-                  const name = (coin.name || '').toLowerCase();
-                  const symbol = (coin.symbol || '').toLowerCase();
-                  const id = (coin.id || '').toLowerCase();
-
-                  // Specific wrapped/derivative coins to exclude (by ID to avoid false positives)
-                  const unwantedIds = [
-                    'weth', 'wbtc', 'steth', 'reth', 'wsteth', 'cbeth',
-                    'meth', 'staked-ether', 'etherfi-ether',
-                    'usdp', 'fei-usd', 'frax', 'lusd',
-                    'synthetix-network-token', // Leveraged tokens from Synthetix
-                    'thorchain-erc20', 'thorchain-rune',
-                    'terra-luna-classic', 'luna-classic',
-                    'test-coin', 'fake-usdt'
-                  ];
-
-                  // Keyword-based exclusions (more specific to avoid false positives)
-                  const unwantedKeywords = [
-                    'leveraged-', 'inverse-', 'bear-', 'bull-', '-2x', '-3x', '-5x', '-10x',
-                    'test', 'fake', 'old coin', 'deprecated',
-                    'wrapped-', 'staked-' // But NOT just "staked"
-                  ];
-
-                  // Check if coin ID is in unwanted list
-                  if (unwantedIds.includes(id)) {
-                    return false;
-                  }
-
-                  // Check keyword exclusions
-                  const hasUnwantedKeyword = unwantedKeywords.some(keyword =>
-                    name.includes(keyword) || symbol.includes(keyword)
-                  );
-
-                  if (hasUnwantedKeyword) {
-                    return false;
-                  }
-
-                  // Exclude 2x/3x/5x leverage indicators in names
-                  if (/\d+x\s/i.test(name) || /\d+x\s/i.test(symbol)) {
-                    return false;
-                  }
-
-                  return true;
-                });
-
-                // Transform CoinGecko format to our app format
-                const transformedCoins = filteredCoins.map((coin, index) => ({
-                  symbol: coin.symbol.toUpperCase(),
-                  name: coin.name,
-                  id: coin.id,
-                  current_price: coin.current_price || 0,
-                  price_change_percentage_24h: coin.price_change_percentage_24h,
-                  market_cap_rank: index + 1
-                }));
-
-                // Write to docs folder (served by GitHub Pages)
-                const output = {
-                  success: true,
-                  timestamp: new Date().toISOString(),
-                  count: transformedCoins.length,
-                  data: transformedCoins
-                };
-
-                // Create docs directory if it doesn't exist
-                if (!fs.existsSync('./docs')) {
-                  fs.mkdirSync('./docs', { recursive: true });
-                }
-
-                fs.writeFileSync('./docs/crypto-data.json', JSON.stringify(output, null, 2));
-                console.log('✅ Successfully updated crypto data with', transformedCoins.length, 'coins');
-              } catch (error) {
-                console.error('❌ Error parsing data:', error.message);
-                console.error('Data received:', data.substring(0, 200));
-                process.exit(1);
-              }
-            });
-          }).on('error', (error) => {
-            console.error('❌ Network error:', error.message);
-            process.exit(1);
-          });
-          EOF
+      - name: Fetch CoinGecko data (crypto-data.json, markets.json, prices.json)
+        env:
+          COINGECKO_DEMO_KEY: ${{ secrets.COINGECKO_DEMO_KEY }}
+        run: node scripts/update-markets.js
 
       - name: Calculate Support/Resistance Levels
+        if: ${{ github.event_name == 'workflow_dispatch' || github.run_number % 6 == 0 }}
+        continue-on-error: true
         run: |
           node - << 'EOF'
           const https = require('https');
@@ -336,11 +231,11 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
-          if git diff --quiet docs/crypto-data.json docs/support-resistance.json; then
+          if [ -z "$(git status --porcelain docs/)" ]; then
             echo "No changes detected"
           else
-            git add docs/crypto-data.json docs/support-resistance.json
-            git commit -m "chore: update cryptocurrency data and support/resistance levels [skip ci]"
+            git add docs/
+            git commit -m "chore: update cryptocurrency data [skip ci]"
 
             # Retry logic for push conflicts
             for i in {1..3}; do

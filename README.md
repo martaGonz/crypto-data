@@ -8,11 +8,18 @@ This repository provides a public, cached data source for cryptocurrency market 
 
 ### How it works
 
-- **GitHub Actions** runs every 5 minutes
+- **GitHub Actions** runs every 10 minutes (GitHub may delay scheduled runs; real cadence is measured in the commit log)
 - Fetches top 250 cryptocurrencies by market cap from CoinGecko
 - Filters to include only primary cryptocurrencies (excludes wrapped tokens and derivatives)
 - Updates `crypto-data.json` with clean, formatted data
 - Data is served via **GitHub Pages** at no cost, with no authentication required
+
+### Files (docs/, served by GitHub Pages)
+
+- `crypto-data.json`: top list, old format (Crypton 2.0.6 and older).
+- `markets.json`: same list plus `price_change_percentage_7d` and `sparkline_7d` (56 points, one every 3 h) for the app's mini charts.
+- `prices.json`: light file for the widget: `{"t":unix,"p":{"bitcoin":[price,24h%,rank]}}`.
+- Made by `scripts/update-markets.js`, one CoinGecko call per run. Optional secret `COINGECKO_DEMO_KEY` (Demo key) avoids 429 from shared GitHub IPs; it works without it.
 
 ### URLs
 
