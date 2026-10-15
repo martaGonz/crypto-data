@@ -72,6 +72,8 @@ function sparkline(arr) {
       price_change_percentage_24h: c.price_change_percentage_24h_in_currency ?? c.price_change_percentage_24h ?? null,
       price_change_percentage_7d: c.price_change_percentage_7d_in_currency ?? null,
       market_cap_rank: i + 1,
+      // 64 px coin logo (CoinGecko's "small"), for the round icons in the app
+      image: c.image ? String(c.image).replace('/large/', '/small/') : null,
       sparkline_7d: sparkline(c.sparkline_in_7d && c.sparkline_in_7d.price)
     }))
   }));
