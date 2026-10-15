@@ -33,8 +33,13 @@ jobs:
           COINGECKO_DEMO_KEY: ${{ secrets.COINGECKO_DEMO_KEY }}
         run: node scripts/update-markets.js
 
+      - name: Is it time for support/resistance? (once an hour, it needs a second CoinGecko call)
+        id: hour
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "$(date -u +%M)" -lt 10 ]; then echo "sr=true" >> "$GITHUB_OUTPUT"; else echo "sr=false" >> "$GITHUB_OUTPUT"; fi
+
       - name: Calculate Support/Resistance Levels
-        if: ${{ github.event_name == 'workflow_dispatch' || github.run_number % 6 == 0 }}
+        if: ${{ steps.hour.outputs.sr == 'true' }}
         continue-on-error: true
         run: |
           node - << 'EOF'
