@@ -18,7 +18,7 @@ This repository provides a public, cached data source for cryptocurrency market 
 
 - `crypto-data.json`: top list, old format (Crypton 2.0.6 and older).
 - `markets.json`: same list plus `price_change_percentage_7d` and `sparkline_7d` (56 points, one every 3 h) for the app's mini charts.
-- `prices.json`: light file for the widget: `{"t":unix,"p":{"bitcoin":[price,24h%,rank]}}`.
+- `prices.json`: light file for the widget: `{"t":unix,"p":{"bitcoin":[price,24h%,rank,"BTC","Bitcoin"]}}`.
 - Made by `scripts/update-markets.js`, one CoinGecko call per run. Optional secret `COINGECKO_DEMO_KEY` (Demo key) avoids 429 from shared GitHub IPs; it works without it.
 
 ### URLs

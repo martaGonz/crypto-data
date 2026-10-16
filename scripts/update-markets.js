@@ -79,8 +79,9 @@ function sparkline(arr) {
   }));
 
   const p = {};
+  // [price, 24h %, rank, SYMBOL, name]: enough for the widget to show coins without any other call
   list.forEach((c, i) => { p[c.id] = [Number((c.current_price || 0).toPrecision(8)),
-    Number((c.price_change_percentage_24h ?? 0).toFixed(2)), i + 1]; });
+    Number((c.price_change_percentage_24h ?? 0).toFixed(2)), i + 1, c.symbol.toUpperCase(), c.name]; });
   fs.writeFileSync('./docs/prices.json', JSON.stringify({ t: Math.floor(Date.now() / 1000), p }));
   console.log('OK', list.length, 'coins');
 })().catch(e => { console.error('FAILED, old files kept:', e.message); process.exit(1); });
