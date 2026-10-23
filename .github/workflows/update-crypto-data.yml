@@ -231,6 +231,15 @@ jobs:
           processCoins();
           EOF
 
+      - name: Discover lists for Crypton 2.1 (memecoins, trending, new on Solana), every 30 min
+        continue-on-error: true
+        env:
+          COINGECKO_DEMO_KEY: ${{ secrets.COINGECKO_DEMO_KEY }}
+        run: |
+          # Two CoinGecko calls: only in the runs that start at :00-:09 or :30-:39 (free plan, 10k calls a month)
+          m=$(date -u +%M)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ $((10#$m % 30)) -lt 10 ]; then node scripts/update-discover.js; else echo "not this run"; fi
+
       - name: Commit and push if changed
         run: |
           git config --local user.email "action@github.com"
