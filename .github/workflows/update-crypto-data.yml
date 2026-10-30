@@ -5,8 +5,14 @@ on:
     # Every 10 minutes (GitHub may delay scheduled runs when it is busy)
     - cron: '*/10 * * * *'
 
-  # Allow manual trigger
+  # Manual trigger. Crypton's Firebase function refreshPriceProxy also calls it every 10 min with
+  # scheduled=true (30 Oct 2026: GitHub ran the cron above only every 3-6 h); the cron stays as a backup.
   workflow_dispatch:
+    inputs:
+      scheduled:
+        description: "Started by the 10-minute scheduler: keep the cron's limits on CoinGecko calls"
+        required: false
+        default: "false"
 
 concurrency:
   group: update-crypto-data
@@ -36,7 +42,7 @@ jobs:
       - name: Is it time for support/resistance? (once an hour, it needs a second CoinGecko call)
         id: hour
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "$(date -u +%M)" -lt 10 ]; then echo "sr=true" >> "$GITHUB_OUTPUT"; else echo "sr=false" >> "$GITHUB_OUTPUT"; fi
+          if { [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.scheduled }}" != "true" ]; } || [ "$(date -u +%M)" -lt 10 ]; then echo "sr=true" >> "$GITHUB_OUTPUT"; else echo "sr=false" >> "$GITHUB_OUTPUT"; fi
 
       - name: Calculate Support/Resistance Levels
         if: ${{ steps.hour.outputs.sr == 'true' }}
@@ -238,7 +244,7 @@ jobs:
         run: |
           # Two CoinGecko calls: only in the runs that start at :00-:09 or :30-:39 (free plan, 10k calls a month)
           m=$(date -u +%M)
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ $((10#$m % 30)) -lt 10 ]; then node scripts/update-discover.js; else echo "not this run"; fi
+          if { [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.scheduled }}" != "true" ]; } || [ $((10#$m % 30)) -lt 10 ]; then node scripts/update-discover.js; else echo "not this run"; fi
 
       - name: Commit and push if changed
         run: |
