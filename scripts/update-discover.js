@@ -3,7 +3,8 @@
 //   trending      CoinGecko /search/trending, the most searched coins today (1 call)
 //   newOnSolana   GeckoTerminal trending Solana pools, only tokens 1-14 days old with
 //                 at least $50k of liquidity (CTO rule, 23 Oct 2026); free, no key
-//   newTokens     the same rule on Solana, Base, BNB Chain and Ethereum, each with its network
+//   newTokens     the same rule on Solana, Base, BNB Chain and Ethereum, each with its network; the
+//                 token itself must be that new too (oldest pair on DexScreener)
 //                 (for Crypton 2.2 on; newOnSolana stays for 2.1 and 2.1.1)
 // Top movers come from markets.json in the app, so they cost nothing here.
 // A list that fails keeps its last good value from the file already published.
@@ -52,6 +53,28 @@ async function trending() {
 const NETWORKS = [['solana', 3], ['base', 2], ['bsc', 2], ['eth', 2]];
 const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
+// A pool can be new while its token isn't (SOL, cbETH or stock tokens on a new Base DEX): the token's
+// age is that of its oldest pair on DexScreener, one call per token. If that call fails, the pool's
+// age stands. A symbol of the top 250 is the old coin or something posing as it, so it is out too.
+const DEX_CHAINS = { solana: 'solana', base: 'base', bsc: 'bsc', eth: 'ethereum' };
+function topSymbols() {
+  try { return new Set(JSON.parse(fs.readFileSync('./docs/markets.json', 'utf8')).data.map(c => c.symbol.toUpperCase())); }
+  catch (_) { return new Set(); }
+}
+async function reallyNew(network, tokens) {
+  const top = topSymbols(), limit = Date.now() - MAX_AGE_DAYS * 86400000, out = [];
+  for (const t of tokens) {
+    if (top.has(t.symbol.toUpperCase())) continue;
+    const pairs = await get(`https://api.dexscreener.com/token-pairs/v1/${DEX_CHAINS[network]}/${t.address}`).catch(() => []);
+    const dates = (Array.isArray(pairs) ? pairs : []).map(p => p.pairCreatedAt).filter(Boolean);
+    if (!dates.length || Math.min(...dates) >= limit) out.push(t);
+  }
+  return out;
+}
+
+// Token names are free text: never show a slur in the app.
+const BLOCKED_NAME = /nigg|fagg|retard|hitler|nazi/i;
+
 async function newPools(network, pages) {
   const now = Date.now(), seen = new Set(), out = [];
   for (let page = 1; page <= pages; page++) {
@@ -63,7 +86,7 @@ async function newPools(network, pages) {
       const token = tokens.get(baseId);
       const liquidity = Number(a.reserve_in_usd || 0);
       const ageDays = (now - Date.parse(a.pool_created_at)) / 86400000;
-      if (!token || seen.has(token.address) || liquidity < MIN_LIQUIDITY || !(ageDays >= MIN_AGE_DAYS && ageDays <= MAX_AGE_DAYS)) continue;
+      if (!token || BLOCKED_NAME.test(token.name + ' ' + token.symbol) || seen.has(token.address) || liquidity < MIN_LIQUIDITY || !(ageDays >= MIN_AGE_DAYS && ageDays <= MAX_AGE_DAYS)) continue;
       seen.add(token.address);
       out.push({ network, address: token.address, symbol: token.symbol, name: token.name, image: token.image_url && token.image_url !== 'missing.png' ? token.image_url : null,
         price: sig(a.base_token_price_usd), change24h: sig(a.price_change_percentage && a.price_change_percentage.h24),
@@ -71,7 +94,7 @@ async function newPools(network, pages) {
         url: `https://www.geckoterminal.com/${network}/pools/${a.address}` });
     }
   }
-  return out.slice(0, 30);
+  return (await reallyNew(network, out)).slice(0, 30);
 }
 
 // One network that fails keeps its last good tokens.
